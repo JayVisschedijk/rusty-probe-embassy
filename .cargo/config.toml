@@ -1,9 +1,8 @@
-[target.'cfg(all(target_arch = "arm", target_os = "none"))']
-#runner = "probe-rs run --chip RP2040 --preverify"
-runner = "elf2uf2-rs -d"
+[target.thumbv8m.main-none-eabihf]
+runner = "probe-rs run --chip rp235x"
 
 [build]
-target = "thumbv6m-none-eabi"        # Cortex-M0 and Cortex-M0+
+target = "thumbv8m.main-none-eabihf"
 
 [env]
 DEFMT_LOG = "info,bitbang_dap=trace,fruitfly=trace"

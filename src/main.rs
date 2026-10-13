@@ -5,12 +5,11 @@ use bitbang_dap::{BitbangAdapter, DelayCycles, InputOutputPin};
 use dap_rs::dap::{self, Dap, DapLeds, DapVersion, DelayNs};
 use dap_rs::jtag::TapConfig;
 use dap_rs::swo::Swo;
-use defmt::{todo, unwrap, warn};
+use defmt::{todo, warn};
 use embassy_executor::Spawner;
 use embassy_futures::join::join4;
 use embassy_futures::select::{Either, select};
 use embassy_rp::adc::{self, Adc};
-use embassy_rp::flash::Flash;
 use embassy_rp::gpio::{Flex, Input, Level, Output, Pin, Pull};
 use embassy_rp::peripherals::{PIN_0, PIN_5, PWM_SLICE0, PWM_SLICE2, USB};
 use embassy_rp::pwm::{self, Pwm, SetDutyCycle};
@@ -24,7 +23,6 @@ use embassy_usb::class::cdc_acm::State;
 use embassy_usb::class::cmsis_dap_v2::{CmsisDapV2Class, State as CmsisDapV2State};
 use embassy_usb::msos::windows_version;
 use embassy_usb::{self, Builder};
-use heapless::String;
 use static_cell::{ConstStaticCell, StaticCell};
 
 use {defmt_rtt as _, panic_probe as _};
@@ -79,27 +77,30 @@ async fn main(_spawner: Spawner) {
     // Create the driver, from the HAL.
     let driver = UsbDriver::new(p.USB, Irqs);
 
-    // Get unique id from flash
-    let mut flash = Flash::<_, _, 0>::new_blocking(p.FLASH);
+    // // Get unique id from flash
+    // let mut flash = Flash::<_, _, 0>::new_blocking(p.FLASH);
 
-    let mut uid = [0; 8];
-    flash.blocking_unique_id(&mut uid).unwrap();
+    // let mut uid = [0; 8];
+    // flash.blocking_unique_id(&mut uid).unwrap();
 
-    static SERIAL: ConstStaticCell<String<16>> = ConstStaticCell::new(String::<16>::new());
-    let serial = SERIAL.take();
-    for b in uid {
-        let lower = b & 0x0F;
-        let upper = (b >> 4) & 0x0F;
-        fn hex(nibble: u8) -> char {
-            if nibble < 10 {
-                (b'0' + nibble) as char
-            } else {
-                (b'A' + nibble - 10) as char
-            }
-        }
-        unwrap!(serial.push(hex(upper)));
-        unwrap!(serial.push(hex(lower)));
-    }
+    // static SERIAL: ConstStaticCell<String<16>> = ConstStaticCell::new(String::<16>::new());
+    // let serial = SERIAL.take();
+    // for b in uid {
+    //     let lower = b & 0x0F;
+    //     let upper = (b >> 4) & 0x0F;
+    //     fn hex(nibble: u8) -> char {
+    //         if nibble < 10 {
+    //             (b'0' + nibble) as char
+    //         } else {
+    //             (b'A' + nibble - 10) as char
+    //         }
+    //     }
+    //     unwrap!(serial.push(hex(upper)));
+    //     unwrap!(serial.push(hex(lower)));
+    // }
+
+    // todo: `flash.blocking_unique_id()` not implemented for rp235xa, using random serial number for now
+    let serial = "012345";
 
     // Create embassy-usb Config
     let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
@@ -404,7 +405,7 @@ impl<'a> LedController<'a> {
     }
 
     fn display(&mut self) -> bool {
-        let is_activity = match (self.state.target_voltage, self.state.host_status.as_ref()) {
+        match (self.state.target_voltage, self.state.host_status.as_ref()) {
             (Some(current_vtarget), None)
             | (Some(current_vtarget), Some(dap::HostStatus::Connected(false))) => {
                 match current_vtarget {
@@ -429,9 +430,7 @@ impl<'a> LedController<'a> {
                 self.leds.red();
                 false
             }
-        };
-
-        is_activity
+        }
     }
 }
 
