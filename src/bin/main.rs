@@ -1,18 +1,18 @@
 #![no_std]
 #![no_main]
 
-use bitbang_dap::{BitbangAdapter, DelayCycles, InputOutputPin};
-use dap_rs::dap::{self, Dap, DapLeds, DapVersion, DelayNs};
+use rusty_probe::{BitDelay, IoPin, LedSignals, NoSwo, dap_task, usb_task};
+
+use bitbang_dap::BitbangAdapter;
+use dap_rs::dap::Dap;
 use dap_rs::jtag::TapConfig;
-use dap_rs::swo::Swo;
-use defmt::{todo, warn};
+
 use embassy_executor::Spawner;
-use embassy_rp::gpio::{Flex, Level, Output, Pin};
 use embassy_rp::peripherals::{PIN_0, USB};
 use embassy_rp::usb::{self, Driver};
 use embassy_rp::{Peri, bind_interrupts};
 use embassy_usb::{
-    self, Builder, UsbDevice,
+    self, Builder,
     class::{
         cdc_acm::{CdcAcmClass, State},
         cmsis_dap_v2::{CmsisDapV2Class, State as CmsisDapV2State},
@@ -144,157 +144,4 @@ async fn main(spawner: Spawner) {
 
     spawner.spawn(usb_task(usb_device).unwrap());
     spawner.spawn(dap_task(dap, dap_class).unwrap());
-}
-
-#[embassy_executor::task]
-pub async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) {
-    usb.run().await;
-}
-
-#[embassy_executor::task]
-async fn dap_task(
-    mut dap: Dap<
-        'static,
-        BitbangAdapter<IoPin<'static>, BitDelay>,
-        &'static LedSignals,
-        BitDelay,
-        bitbang_dap::JtagAdapter<IoPin<'static>, BitDelay>,
-        bitbang_dap::SwdAdapter<IoPin<'static>, BitDelay>,
-        NoSwo,
-    >,
-    mut dap_class: CmsisDapV2Class<'static, Driver<'static, USB>>,
-) {
-    let mut req = [0u8; 1024];
-    let mut resp = [0u8; 1024];
-    loop {
-        dap_class.wait_connection().await;
-
-        let Ok(req_len) = dap_class.read_packet(&mut req).await.inspect_err(|e| {
-            warn!("failed to read from USB: {:?}", e);
-        }) else {
-            continue;
-        };
-
-        let resp_len = dap.process_command(&req[..req_len], &mut resp, DapVersion::V2);
-
-        if let Err(e) = dap_class.write_packet(&resp[..resp_len]).await {
-            warn!("failed to write to USB: {:?}", e);
-            continue;
-        }
-    }
-}
-struct BitDelay;
-
-impl DelayNs for BitDelay {
-    fn delay_ns(&mut self, ns: u32) {
-        self.delay_cycles((ns as u64 * self.cpu_clock() as u64 / 1_000_000_000_u64) as u32);
-    }
-}
-
-impl DelayCycles for BitDelay {
-    fn delay_cycles(&mut self, cycles: u32) {
-        cortex_m::asm::delay(cycles);
-    }
-
-    fn cpu_clock(&self) -> u32 {
-        // This function is used to calculate the number of cycles to wait in a SWD/JTAG clock
-        // cycle, so we don't actually have to return the real CPU frequency.
-        // cortex_m __delay divides by 2 and Cortex-M0+ needs 4 CPU cycles per delay loop iteration.
-        150_000_000 / 2
-    }
-}
-
-struct IoPin<'a> {
-    pin: Flex<'a>,
-    direction_pin: Option<Output<'a>>,
-}
-
-impl<'a> IoPin<'a> {
-    fn new(pin: Peri<'a, impl Pin>, direction_pin: Option<Peri<'a, impl Pin>>) -> Self {
-        Self {
-            pin: Flex::new(pin),
-            direction_pin: direction_pin.map(|pin| Output::new(pin, Level::Low)),
-        }
-    }
-}
-
-impl InputOutputPin for IoPin<'_> {
-    fn set_as_output(&mut self) {
-        self.pin.set_as_output();
-        if let Some(dir) = self.direction_pin.as_mut() {
-            dir.set_high();
-        }
-    }
-
-    fn set_high(&mut self, high: bool) {
-        match high {
-            true => self.pin.set_high(),
-            false => self.pin.set_low(),
-        }
-    }
-
-    fn set_as_input(&mut self) {
-        if let Some(dir) = self.direction_pin.as_mut() {
-            dir.set_low();
-        }
-        self.pin.set_as_input();
-    }
-
-    fn is_high(&mut self) -> bool {
-        self.pin.is_high()
-    }
-}
-
-struct LedSignals {}
-
-impl DapLeds for &'static LedSignals {
-    fn react_to_host_status(&mut self, _host_status: dap::HostStatus) {}
-}
-
-struct NoSwo;
-
-impl Swo for NoSwo {
-    fn set_transport(&mut self, _transport: dap_rs::swo::SwoTransport) {
-        todo!()
-    }
-
-    fn set_mode(&mut self, _mode: dap_rs::swo::SwoMode) {
-        todo!()
-    }
-
-    fn set_baudrate(&mut self, _baudrate: u32) -> u32 {
-        todo!()
-    }
-
-    fn set_control(&mut self, _control: dap_rs::swo::SwoControl) {
-        todo!()
-    }
-
-    fn polling_data(&mut self, _buf: &mut [u8]) -> u32 {
-        todo!()
-    }
-
-    fn streaming_data(&mut self) {
-        todo!()
-    }
-
-    fn is_active(&self) -> bool {
-        todo!()
-    }
-
-    fn bytes_available(&self) -> u32 {
-        todo!()
-    }
-
-    fn buffer_size(&self) -> u32 {
-        todo!()
-    }
-
-    fn support(&self) -> dap_rs::swo::SwoSupport {
-        todo!()
-    }
-
-    fn status(&mut self) -> dap_rs::swo::SwoStatus {
-        todo!()
-    }
 }

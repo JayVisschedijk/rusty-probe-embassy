@@ -1,5 +1,5 @@
 # TODO
-- turn into crate to use in `eurocard/pico/controller`
+- integrate in `eurocard/pico/controller`
 
 # GOALS
 - use `rusty-probe` in `eurocard/pico/controller`
