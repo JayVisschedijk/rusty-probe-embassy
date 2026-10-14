@@ -1,8 +1,8 @@
 # TODO
-- update to crate versions we use in our project `eurocard-pico-controller`
+- turn into crate to use in `eurocard/pico/controller`
 
 # GOALS
-- port to rp235x eurocard-pico-controller
+- use `rusty-probe` in `eurocard/pico/controller`
 - optional: implement swd pio
 
 # NOTES
