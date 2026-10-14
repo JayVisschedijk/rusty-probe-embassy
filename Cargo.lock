@@ -727,28 +727,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
-name = "fruitfly"
-version = "0.1.0"
-dependencies = [
- "bitbang-dap",
- "cortex-m",
- "cortex-m-rt",
- "dap-rs",
- "defmt 1.0.1",
- "defmt-rtt",
- "embassy-executor",
- "embassy-futures",
- "embassy-rp",
- "embassy-sync",
- "embassy-time",
- "embassy-usb",
- "heapless 0.9.3",
- "panic-probe",
- "portable-atomic",
- "static_cell",
-]
-
-[[package]]
 name = "futures-core"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1331,6 +1309,28 @@ name = "rustversion"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+
+[[package]]
+name = "rusty-probe"
+version = "0.1.0"
+dependencies = [
+ "bitbang-dap",
+ "cortex-m",
+ "cortex-m-rt",
+ "dap-rs",
+ "defmt 1.0.1",
+ "defmt-rtt",
+ "embassy-executor",
+ "embassy-futures",
+ "embassy-rp",
+ "embassy-sync",
+ "embassy-time",
+ "embassy-usb",
+ "heapless 0.9.3",
+ "panic-probe",
+ "portable-atomic",
+ "static_cell",
+]
 
 [[package]]
 name = "same-file"

@@ -5,4 +5,4 @@ runner = "probe-rs run --chip rp235x"
 target = "thumbv8m.main-none-eabihf"
 
 [env]
-DEFMT_LOG = "info,bitbang_dap=trace,fruitfly=trace"
+DEFMT_LOG = "info,bitbang_dap=trace,rusty_probe=trace"
