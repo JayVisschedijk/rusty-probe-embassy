@@ -8,9 +8,11 @@ use dap_rs::dap::Dap;
 use dap_rs::jtag::TapConfig;
 
 use embassy_executor::Spawner;
-use embassy_rp::peripherals::{PIN_0, USB};
-use embassy_rp::usb::{self, Driver};
-use embassy_rp::{Peri, bind_interrupts};
+use embassy_rp::{
+    bind_interrupts,
+    usb::{self, Driver},
+    peripherals::USB,
+    };
 use embassy_usb::{
     self, Builder,
     class::{
@@ -32,13 +34,11 @@ async fn main(spawner: Spawner) {
 
     // Configuration options:
     // 1. Pinout
-    let t_nrst = p.PIN_9;
-    let t_jtdi = p.PIN_17;
-    let t_jtms_swdio = p.PIN_10;
-    let dir_swdio = p.PIN_12;
-    let t_jtck_swclk = p.PIN_11;
-    let dir_swclk = p.PIN_19;
-    let t_jtdo = p.PIN_16;
+    let t_nrst = p.PIN_3;
+    // let t_jtdi ;// No JTAG
+    let t_jtms_swdio = p.PIN_5;
+    let t_jtck_swclk = p.PIN_4;
+    // let t_jtdo // No JTAG
     //let t_swo // Not supported yet
 
     // 2. Max JTAG scan chain
@@ -125,11 +125,11 @@ async fn main(spawner: Spawner) {
     static SCAN_CHAIN: ConstStaticCell<[TapConfig; MAX_SCAN_CHAIN_LENGTH]> =
         ConstStaticCell::new([TapConfig::INIT; MAX_SCAN_CHAIN_LENGTH]);
     let deps = BitbangAdapter::new(
-        IoPin::new(t_nrst, None::<Peri<'static, PIN_0>>),
-        IoPin::new(t_jtdi, None::<Peri<'static, PIN_0>>),
-        IoPin::new(t_jtms_swdio, Some(dir_swdio)),
-        IoPin::new(t_jtck_swclk, Some(dir_swclk)),
-        IoPin::new(t_jtdo, None::<Peri<'static, PIN_0>>),
+        IoPin::new(t_nrst),
+        IoPin::new(t_jtdi),
+        IoPin::new(t_jtms_swdio),
+        IoPin::new(t_jtck_swclk),
+        IoPin::new(t_jtdo),
         BitDelay,
         SCAN_CHAIN.take(),
     );

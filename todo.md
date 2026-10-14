@@ -1,4 +1,7 @@
 # TODO
+- `direction_pin` in `IoPin{pin, direction_pin}` not needed for us, right? JTAG specific?
+    let dir_swdio = p.PIN_12;   // SWDCLK__JCLK
+    let dir_swclk = p.PIN_19;   // SWDIO_TMS
 - integrate in `eurocard/pico/controller`
 
 # GOALS

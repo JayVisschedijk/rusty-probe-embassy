@@ -5,7 +5,7 @@ use dap_rs::dap::{self, Dap, DapLeds, DapVersion, DelayNs};
 use dap_rs::swo::Swo;
 use defmt::{todo, warn};
 use embassy_rp::Peri;
-use embassy_rp::gpio::{Flex, Level, Output, Pin};
+use embassy_rp::gpio::{Flex, Pin};
 use embassy_rp::peripherals::USB;
 use embassy_rp::usb::Driver;
 use embassy_usb::{self, UsbDevice, class::cmsis_dap_v2::CmsisDapV2Class};
@@ -70,14 +70,12 @@ impl DelayCycles for BitDelay {
 
 pub struct IoPin<'a> {
     pin: Flex<'a>,
-    direction_pin: Option<Output<'a>>,
 }
 
 impl<'a> IoPin<'a> {
-    pub fn new(pin: Peri<'a, impl Pin>, direction_pin: Option<Peri<'a, impl Pin>>) -> Self {
+    pub fn new(pin: Peri<'a, impl Pin>) -> Self {
         Self {
             pin: Flex::new(pin),
-            direction_pin: direction_pin.map(|pin| Output::new(pin, Level::Low)),
         }
     }
 }
@@ -85,9 +83,6 @@ impl<'a> IoPin<'a> {
 impl InputOutputPin for IoPin<'_> {
     fn set_as_output(&mut self) {
         self.pin.set_as_output();
-        if let Some(dir) = self.direction_pin.as_mut() {
-            dir.set_high();
-        }
     }
 
     fn set_high(&mut self, high: bool) {
@@ -98,9 +93,6 @@ impl InputOutputPin for IoPin<'_> {
     }
 
     fn set_as_input(&mut self) {
-        if let Some(dir) = self.direction_pin.as_mut() {
-            dir.set_low();
-        }
         self.pin.set_as_input();
     }
 
