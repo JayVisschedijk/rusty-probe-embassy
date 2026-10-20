@@ -19,11 +19,11 @@ pub async fn usb_task(mut usb: UsbDevice<'static, Driver<'static, USB>>) {
 pub async fn dap_task(
     mut dap: Dap<
         'static,
-        BitbangAdapter<IoPin<'static>, BitDelay>,
+        BitbangAdapter<OptIoPin<'static>, BitDelay>,
         &'static LedSignals,
         BitDelay,
-        bitbang_dap::JtagAdapter<IoPin<'static>, BitDelay>,
-        bitbang_dap::SwdAdapter<IoPin<'static>, BitDelay>,
+        bitbang_dap::JtagAdapter<OptIoPin<'static>, BitDelay>,
+        bitbang_dap::SwdAdapter<OptIoPin<'static>, BitDelay>,
         NoSwo,
     >,
     mut dap_class: CmsisDapV2Class<'static, Driver<'static, USB>>,
@@ -68,36 +68,44 @@ impl DelayCycles for BitDelay {
     }
 }
 
-pub struct IoPin<'a> {
-    pin: Flex<'a>,
-}
+#[derive(Default)]
+pub struct OptIoPin<'a>(Option<Flex<'a>>);
 
-impl<'a> IoPin<'a> {
+impl<'a> OptIoPin<'a> {
     pub fn new(pin: Peri<'a, impl Pin>) -> Self {
-        Self {
-            pin: Flex::new(pin),
-        }
+        Self(Some(Flex::new(pin)))
     }
 }
 
-impl InputOutputPin for IoPin<'_> {
+impl InputOutputPin for OptIoPin<'_> {
     fn set_as_output(&mut self) {
-        self.pin.set_as_output();
+        if let OptIoPin(Some(io_pin)) = self {
+            io_pin.set_as_output();
+        }
     }
 
     fn set_high(&mut self, high: bool) {
-        match high {
-            true => self.pin.set_high(),
-            false => self.pin.set_low(),
+        if let OptIoPin(Some(io_pin)) = self {
+            match high {
+                true => io_pin.set_high(),
+                false => io_pin.set_low(),
+            }
         }
     }
 
     fn set_as_input(&mut self) {
-        self.pin.set_as_input();
+        if let OptIoPin(Some(io_pin)) = self {
+            io_pin.set_as_input();
+        }
     }
 
     fn is_high(&mut self) -> bool {
-        self.pin.is_high()
+        if let OptIoPin(Some(io_pin)) = self {
+            io_pin.is_high()
+        }
+        else {
+            false
+        }
     }
 }
 

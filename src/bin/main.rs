@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use rusty_probe::{BitDelay, IoPin, LedSignals, NoSwo, dap_task, usb_task};
+use rusty_probe::{BitDelay, LedSignals, NoSwo, OptIoPin, dap_task, usb_task};
 
 use bitbang_dap::BitbangAdapter;
 use dap_rs::dap::Dap;
@@ -125,11 +125,11 @@ async fn main(spawner: Spawner) {
     static SCAN_CHAIN: ConstStaticCell<[TapConfig; MAX_SCAN_CHAIN_LENGTH]> =
         ConstStaticCell::new([TapConfig::INIT; MAX_SCAN_CHAIN_LENGTH]);
     let deps = BitbangAdapter::new(
-        IoPin::new(t_nrst),
-        IoPin::new(t_jtdi),
-        IoPin::new(t_jtms_swdio),
-        IoPin::new(t_jtck_swclk),
-        IoPin::new(t_jtdo),
+        OptIoPin::new(t_nrst),
+        OptIoPin::default(),
+        OptIoPin::new(t_jtms_swdio),
+        OptIoPin::new(t_jtck_swclk),
+        OptIoPin::default(),
         BitDelay,
         SCAN_CHAIN.take(),
     );
