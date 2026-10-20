@@ -1,13 +1,17 @@
 #![no_std]
 
 use bitbang_dap::{BitbangAdapter, DelayCycles, InputOutputPin};
-use dap_rs::dap::{self, Dap, DapLeds, DapVersion, DelayNs};
-use dap_rs::swo::Swo;
+use dap_rs::{
+    dap::{self, Dap, DapLeds, DapVersion, DelayNs},
+    swo::Swo,
+};
 use defmt::{todo, warn};
-use embassy_rp::Peri;
-use embassy_rp::gpio::{Flex, Pin};
-use embassy_rp::peripherals::USB;
-use embassy_rp::usb::Driver;
+use embassy_rp::{
+    Peri,
+    gpio::{Flex, Pin},
+    peripherals::USB,
+    usb::Driver,
+};
 use embassy_usb::{self, UsbDevice, class::cmsis_dap_v2::CmsisDapV2Class};
 
 #[embassy_executor::task]

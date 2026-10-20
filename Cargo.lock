@@ -1321,7 +1321,6 @@ dependencies = [
  "defmt 1.0.1",
  "defmt-rtt",
  "embassy-executor",
- "embassy-futures",
  "embassy-rp",
  "embassy-sync",
  "embassy-time",

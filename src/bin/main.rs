@@ -32,19 +32,12 @@ bind_interrupts!(struct Irqs {
 async fn main(spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
 
-    // Configuration options:
-    // 1. Pinout
+    // SWD pins
     let t_nrst = p.PIN_3;
-    // let t_jtdi ;// No JTAG
-    let t_jtms_swdio = p.PIN_5;
-    let t_jtck_swclk = p.PIN_4;
-    // let t_jtdo // No JTAG
-    //let t_swo // Not supported yet
+    let t_swdio = p.PIN_5;
+    let t_swclk = p.PIN_4;
 
-    // 2. Max JTAG scan chain
-    const MAX_SCAN_CHAIN_LENGTH: usize = 8;
-
-    // 3. USB configuration
+    // USB configuration
     const MANUFACTURER: &str = "Sarif";
     const PRODUCT: &str = "Rusty Probe with Embassy CMSIS-DAP v2";
 
@@ -122,16 +115,14 @@ async fn main(spawner: Spawner) {
     static LED_SIGNALS: LedSignals = LedSignals {};
 
     // Now create the CMSIS-DAP handler.
-    static SCAN_CHAIN: ConstStaticCell<[TapConfig; MAX_SCAN_CHAIN_LENGTH]> =
-        ConstStaticCell::new([TapConfig::INIT; MAX_SCAN_CHAIN_LENGTH]);
     let deps = BitbangAdapter::new(
         OptIoPin::new(t_nrst),
         OptIoPin::default(),
-        OptIoPin::new(t_jtms_swdio),
-        OptIoPin::new(t_jtck_swclk),
+        OptIoPin::new(t_swdio),
+        OptIoPin::new(t_swclk),
         OptIoPin::default(),
         BitDelay,
-        SCAN_CHAIN.take(),
+        &mut [TapConfig::INIT; 0],
     );
 
     let dap = Dap::new(
