@@ -7,8 +7,7 @@ use dap_rs::{
 };
 use defmt::{todo, warn};
 use embassy_rp::{
-    Peri,
-    gpio::{Flex, Pin},
+    gpio::Flex,
     peripherals::USB,
     usb::Driver,
 };
@@ -76,8 +75,8 @@ impl DelayCycles for BitDelay {
 pub struct OptIoPin<'a>(Option<Flex<'a>>);
 
 impl<'a> OptIoPin<'a> {
-    pub fn new(pin: Peri<'a, impl Pin>) -> Self {
-        Self(Some(Flex::new(pin)))
+    pub fn new(pin: Flex<'static>) -> Self {
+        Self(Some(pin))
     }
 }
 

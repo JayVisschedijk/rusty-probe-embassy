@@ -4,15 +4,17 @@
 use rusty_probe::{BitDelay, LedSignals, NoSwo, OptIoPin, dap_task, usb_task};
 
 use bitbang_dap::BitbangAdapter;
-use dap_rs::dap::Dap;
-use dap_rs::jtag::TapConfig;
+use dap_rs::{dap::Dap,
+            jtag::TapConfig,
+};
 
 use embassy_executor::Spawner;
 use embassy_rp::{
     bind_interrupts,
+    gpio::Flex,
     usb::{self, Driver},
     peripherals::USB,
-    };
+};
 use embassy_usb::{
     self, Builder,
     class::{
@@ -33,9 +35,9 @@ async fn main(spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
 
     // SWD pins
-    let t_nrst = p.PIN_3;
-    let t_swdio = p.PIN_5;
-    let t_swclk = p.PIN_4;
+    let t_nrst = Flex::new(p.PIN_3);
+    let t_swdio = Flex::new(p.PIN_5);
+    let t_swclk = Flex::new(p.PIN_4);
 
     // USB configuration
     const MANUFACTURER: &str = "Sarif";
